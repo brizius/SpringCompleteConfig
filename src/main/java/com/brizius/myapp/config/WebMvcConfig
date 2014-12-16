@@ -1,0 +1,71 @@
+package com.brizius.myapp.config;
+
+import nz.net.ultraq.thymeleaf.LayoutDialect;
+
+import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
+import org.springframework.social.connect.web.thymeleaf.SpringSocialDialect;
+import org.springframework.web.servlet.ViewResolver;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.thymeleaf.spring4.SpringTemplateEngine;
+import org.thymeleaf.spring4.view.ThymeleafViewResolver;
+import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
+import org.thymeleaf.templateresolver.TemplateResolver;
+
+
+@Configuration
+@EnableWebMvc
+public class WebMvcConfig extends WebMvcConfigurerAdapter {
+
+	@Override
+	public void addResourceHandlers(ResourceHandlerRegistry registry) {
+		registry.addResourceHandler("/resources/**").addResourceLocations("/resources/");
+	}
+
+
+        //Spring message resolver
+	@Bean
+	public MessageSource messageSource() {
+		ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
+		messageSource.setBasename("/WEB-INF/messages/messages");
+		return messageSource;
+	}
+
+	//Thymeleaf view resolver
+	//view resolver: Thymeleaf implementation of the Spring MVC view resolver interface in order to resolve Thymeleaf views.
+	@Bean
+	public ViewResolver viewResolver(SpringTemplateEngine templateEngine) {
+		ThymeleafViewResolver viewResolver = new ThymeleafViewResolver();
+		viewResolver.setTemplateEngine(templateEngine);
+		return viewResolver;
+	}
+
+	//Thymeleaf template engine with Spring integration
+	//template engine: Integrates with Spring framework, establishing the Spring specific dialect as the default dialect.
+
+	@Bean
+	public SpringTemplateEngine templateEngine(TemplateResolver templateResolver) {
+		SpringTemplateEngine templateEngine = new SpringTemplateEngine();
+		templateEngine.setTemplateResolver(templateResolver);
+		templateEngine.addDialect(new SpringSocialDialect());
+		templateEngine.addDialect(new LayoutDialect());
+		return templateEngine;
+	}
+
+	//Thymeleaf template resolver serving HTML 5
+	//template resolver: Resolves template names and delegates them to a servlet context resource resolver.
+
+	@Bean
+	public TemplateResolver templateResolver() {
+		TemplateResolver templateResolver = new ClassLoaderTemplateResolver();
+		templateResolver.setPrefix("/views/");
+		templateResolver.setSuffix(".html");
+		templateResolver.setTemplateMode("HTML5");
+		return templateResolver;
+	}
+
+}
