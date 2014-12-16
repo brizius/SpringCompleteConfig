@@ -1,0 +1,26 @@
+package com.brizius.myapp.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.ComponentScan.Filter;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+@Configuration
+@ComponentScan(basePackages = "com.brizius.myapp", excludeFilters = { @Filter(Configuration.class) })
+@PropertySource("classpath:application.properties")
+@EnableAsync
+@EnableTransactionManagement
+public class MainConfig{
+	
+	@Bean
+	public static PropertySourcesPlaceholderConfigurer propertyPlaceHolderConfigurer() {
+		return new PropertySourcesPlaceholderConfigurer();
+	}
+}
+
+
+
