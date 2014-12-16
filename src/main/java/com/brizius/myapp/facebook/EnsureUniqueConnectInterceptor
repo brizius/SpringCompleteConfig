@@ -1,0 +1,58 @@
+package com.brizius.myapp.facebook;
+
+import org.springframework.social.connect.Connection;
+import org.springframework.social.connect.ConnectionFactory;
+import org.springframework.social.connect.ConnectionRepository;
+import org.springframework.social.connect.UsersConnectionRepository;
+import org.springframework.social.connect.web.ConnectInterceptor;
+import org.springframework.social.facebook.api.Facebook;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.context.request.WebRequest;
+import org.apache.log4j.Logger;
+
+public class EnsureUniqueConnectInterceptor implements
+		ConnectInterceptor<Facebook> {
+
+	private UsersConnectionRepository usersConnectionRepository;
+
+	private ConnectionRepository connectionRepository;
+	
+	
+	public EnsureUniqueConnectInterceptor(UsersConnectionRepository usersConnectionRepository, ConnectionRepository connectionRepository){
+		this.usersConnectionRepository=usersConnectionRepository;
+		this.connectionRepository=connectionRepository;
+	}
+	
+	private static final Logger log = Logger
+			.getLogger(EnsureUniqueConnectInterceptor.class);
+
+	@Override
+	public void preConnect(ConnectionFactory<Facebook> connectionFactory,
+			MultiValueMap<String, String> parameters, WebRequest request) {
+
+	}
+
+	@Override
+	public void postConnect(Connection<Facebook> connection, WebRequest request) {
+
+		boolean connectionAlreadyAssociatedWithAnotherUser = usersConnectionRepository.findUserIdsWithConnection(connection).size() > 1;
+
+
+		if (connectionAlreadyAssociatedWithAnotherUser) {
+
+			connectionRepository.removeConnection(connection.getKey());
+			NonUniqueConnectionException nonUniqueConnectionException = new NonUniqueConnectionException(
+					"The connection is already associated with a different account");
+
+			request.setAttribute("lastSessionException",
+					nonUniqueConnectionException, WebRequest.SCOPE_SESSION);
+			try {
+				throw nonUniqueConnectionException;
+			} catch (NonUniqueConnectionException e) {
+				e.printStackTrace();
+			}
+		}
+
+	}
+
+}
